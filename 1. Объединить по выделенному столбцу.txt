@@ -1,0 +1,30 @@
+'Макрос для объединения одинаковых значений по выделенному столбцу
+'Не сортирует! Проходит столбик(на котором стоит курсор, или который
+'был выделен)снизу вверх. Если значение в ячейке совпадает с верхним,
+'то он их объединяет.
+'если нужно собрать вместе данные со всей страницы - предварительно сортируем
+'по столбику со значениями для объединения
+
+
+Sub JoinDoubles()
+
+    Dim i As Long
+    Application.DisplayAlerts = False
+
+    With ActiveSheet
+        columnForJoin = ActiveCell.Column
+        lastRow = .Cells(.Rows.Count, columnForJoin).End(xlUp).Row
+
+    For i = lastRow To 2 Step -1
+        If .Cells(i, columnForJoin) = .Cells(i - 1, columnForJoin) Then
+            Range(.Cells(i - 1, columnForJoin), .Cells(i, columnForJoin)).Merge
+        End If
+    Next
+
+    End With
+
+    Columns(columnForJoin).Select
+    Selection.VerticalAlignment = xlVAlignCenter
+    Application.DisplayAlerts = True
+
+End Sub
