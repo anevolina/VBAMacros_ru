@@ -1,0 +1,35 @@
+'Макрос склеивает данные из колонки (выделить ячейку в ней, или всю колонку)если
+'в колонке левее её значения повторяются.
+'Не сортирует! Если нужно объединить данные по всей странице, предварительно
+'сортируем столбик, по которому будем смотреть повторяющиеся значения.
+'ячейки с пустыми значениями НЕ считает одинаковыми
+
+
+
+Sub ConcatenateDoublesFromLeft()
+
+    Dim i As Long
+    Application.DisplayAlerts = False
+
+    With ActiveSheet
+        columnForJoin = ActiveCell.Column
+        lastRow = .Cells(.Rows.Count, columnForJoin).End(xlUp).Row
+
+    For i = lastRow To 2 Step -1
+        If .Cells(i, columnForJoin - 1) = .Cells(i - 1, columnForJoin - 1) Then
+            If Not IsEmpty(.Cells(i, columnForJoin - 1)) And Not IsEmpty(.Cells(i - 1, columnForJoin - 1)) Then
+                .Cells(i - 1, columnForJoin) = .Cells(i - 1, columnForJoin).Value & ", " & .Cells(i, columnForJoin)
+                .Rows(i).Delete
+            End If
+        End If
+    Next
+
+    End With
+
+    Application.DisplayAlerts = True
+
+End Sub
+
+
+
+
