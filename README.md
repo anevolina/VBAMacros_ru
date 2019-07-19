@@ -1,5 +1,4 @@
 # VBAMacros_ru
-Excel VBA Macros I made to simplify my friends work. Russian only =)
 
 В файле *.pdf - описание работы макроса, в *.txt - его исходный код. 
 
