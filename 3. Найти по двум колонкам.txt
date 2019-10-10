@@ -1,0 +1,131 @@
+' Макрос работает с одним и тем же файлом (не с двумя разными) - данные для сверки
+' нужно скопировать на второй/третий/пятый листок, и после указать колонки для 
+' сравнения и колонки для копирования - откуда и куда
+
+
+Sub FillWithTwoColumnsSelect()
+
+    Dim i As Integer
+
+    Application.DisplayAlerts = False
+
+
+
+    'Устанавливаем рабочие листы - пишем названия, как они указаны на вкладках снизу
+    ' ToSheet - куда надо подставить
+    ' FromSheet - откуда взять 
+
+    Set ToSheet = Worksheets("Sheet1")
+    Set FromSheet = Worksheets("Sheet2")
+
+    'Это не трогаем, оно само считает последнюю заполненную строку
+    
+    LastToRow = ToSheet.Cells(Rows.Count, 1).End(xlUp).Row
+    LastFromRow = FromSheet.Cells(Rows.Count, 1).End(xlUp).Row
+
+
+
+    
+    'Тут устанавливаем колонки для поиска
+    ' ToSearch1 - колонка на листе, куда нужно подставить данные
+    ' FromSearch1 - колонка с листа, откуда потом возьмем данные
+    ' Сопоставляем: с Sheet1 берем колонку С:С и сравниваем ее со
+    ' значением колонки В:В на Sheet2
+
+    ToSearch1 = ToSheet.Range("C:C").Columns(1).Column
+    FromSearch1 = FromSheet.Range("B:B").Columns(1).Column
+
+
+    ' колонку Е:Е с Sheet1 сравниваем с D:D с Sheet2
+    ToSearch2 = ToSheet.Range("E:E").Columns(1).Column
+    FromSearch2 = FromSheet.Range("D:D").Columns(1).Column
+
+
+
+
+    'Устанавливаем, какие колонки будем копировать, и куда
+    'Если будешь добавлять новые - их потом нужно будет прописать чуть ниже чтоб скопировались (см. ниже (!!!))
+    'Сопоставляем колонку F:F с Sheet1 с колонкой Е:Е Sheet2 и так далее
+
+    ToVal1 = ToSheet.Range("F:F").Columns(1).Column
+    FromVal1 = FromSheet.Range("E:E").Columns(1).Column
+    
+    ToVal2 = ToSheet.Range("G:G").Columns(1).Column
+    FromVal2 = FromSheet.Range("F:F").Columns(1).Column
+
+    ToVal3 = ToSheet.Range("H:H").Columns(1).Column
+    FromVal3 = FromSheet.Range("G:G").Columns(1).Column
+
+    ToVal4 = ToSheet.Range("I:I").Columns(1).Column
+    FromVal4 = FromSheet.Range("H:H").Columns(1).Column
+
+
+
+   'и поехали...
+
+    With ToSheet:
+
+        'Первое значение i равно 2, т.к. в первой строке у нас шапка. Если нужно - меняй
+        For i = 2 To LastToRow Step 1
+            CurrSearchVal1 = CStr(.Cells(i, ToSearch1).Value)
+            CurrSearchVal2 = CStr(.Cells(i, ToSearch2).Value)
+
+            RowFrom = GetRowFrom(FromSheet, LastFromRow, FromSearch1, FromSearch2, CurrSearchVal1, CurrSearchVal2)
+
+                If RowFrom <> -1 Then
+
+		
+		   'Если мы нашли строку, которая совпадает по двум колонкам, то по одному переносим
+		   'данные для копирования. Сюда нужно прописать колонки, если добавляешь новые для копирования выше (!!!)
+		   'или удалить, если что лишнее
+    
+                   .Cells(i, ToVal1).Value = FromSheet.Cells(RowFrom, FromVal1).Value
+                   .Cells(i, ToVal2).Value = FromSheet.Cells(RowFrom, FromVal2).Value
+                   .Cells(i, ToVal3).Value = FromSheet.Cells(RowFrom, FromVal3).Value
+                   .Cells(i, ToVal4).Value = FromSheet.Cells(RowFrom, FromVal4).Value
+
+
+
+		   'Выделим строчку, которую нашли - все, что останется белым на листе, откуда берем данные, не было использовано!
+		   'При желании можно провериь вручную, что не так =)
+
+                    FromSheet.Cells(RowFrom, 1).Interior.Color = RGB(50, 200, 100)
+    
+                End If
+
+            Next
+
+            
+    End With
+
+
+    Application.DisplayAlerts = True
+
+End Sub
+
+
+Function GetRowFrom(FromSheet, LastFromRow, FromSearch1, FromSearch2, CurrSearchVal1, CurrSearchVal2) As Integer
+    Dim i As Integer
+
+    With FromSheet
+        'Первое значение i равно 2, т.к. в первой строке у нас шапка. Если нужно - меняй
+        For i = 2 To LastFromRow Step 1
+            FromSearch1Val = CStr(.Cells(i, FromSearch1).Value)
+            FromSearch2Val = CStr(.Cells(i, FromSearch2).Value)
+
+            If (FromSearch1Val = CurrSearchVal1) And (FromSearch2Val = CurrSearchVal2) Then
+                GetRowFrom = i
+                
+                Exit Function
+
+            End If
+        
+            Next
+
+    End With
+
+    GetRowFrom = -1
+
+End Function
+
+
