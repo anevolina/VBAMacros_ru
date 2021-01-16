@@ -1,0 +1,70 @@
+'Найти итоговую сумму по ИНН и вывести самую раннюю дату
+'Перед тем как запустить макрос идём в меню "Tools" -> "References" -> ставим галочку "Microsoft Scripting Runtime"
+'Затем выбираем лист, по которому нужно посчитать данные и запускаем макрос
+'!!!Макрос считает по текущему выбранному листу!!!
+
+
+Sub calculate_sum()
+    Dim i As Integer
+    Dim key As Variant
+    Dim dict As New Scripting.Dictionary
+
+    Application.DisplayAlerts = False
+
+    'Если колонки инн, даты или суммы другие - правим тут:
+    INN = ActiveSheet.Range("C:C").Columns(1).Column
+    Deadline = ActiveSheet.Range("G:G").Columns(1).Column
+    Summa = ActiveSheet.Range("H:H").Columns(1).Column
+
+    LastToRow = ActiveSheet.Cells(Rows.Count, INN).End(xlUp).Row
+
+    With ActiveSheet
+        For i = 2 To LastToRow Step 1
+            curr_inn = CStr(.Cells(i, INN).Value)
+            If Not dict.Exists(curr_inn) Then
+                Set Data = CreateObject("Scripting.Dictionary")
+                With Data
+                    Data.Add "Date", Cells(i, Deadline).Value
+                    Data.Add "Sum", Cells(i, Summa).Value
+                End With
+                dict.Add curr_inn, Data
+            Else
+                dict(curr_inn)("Sum") = dict(curr_inn)("Sum") + Cells(i, Summa).Value
+                If dict(curr_inn)("Date") > Cells(i, Deadline).Value Then
+                    dict(curr_inn)("Date") = Cells(i, Deadline).Value
+                End If
+            End If
+            
+            Next
+    End With
+    
+    For Each ws In Worksheets
+        If ws.Name = "Result" Then
+            Sheets("Result").Delete
+        End If
+    Next
+    
+    Sheets.Add
+    ActiveSheet.Name = "Result"
+    ActiveSheet.Cells(1, 1).Value = "!!!!!Все изменения на этой странице будут удалены при перезапуске макроса!!!!!"
+    ActiveSheet.Cells(2, 1).Value = "ИНН"
+    ActiveSheet.Cells(2, 2).Value = "Дата"
+    ActiveSheet.Cells(2, 3).Value = "Сумма"
+    ActiveSheet.Range("A2:H2").Font.Bold = True
+    
+    i = 3
+    With ActiveSheet
+        For Each key In dict.Keys
+            .Cells(i, 1).Value = key
+            .Cells(i, 2).Value = dict(key)("Date")
+            .Cells(i, 3).Value = dict(key)("Sum")
+            If dict(key)("Sum") > 10000 Then
+                .Cells(i, 3).Interior.Color = RGB(255, 99, 71)
+            End If
+        
+            i = i + 1
+        Next key
+    End With
+    
+    Application.DisplayAlerts = True
+End Sub
